@@ -89,6 +89,9 @@
           >
         </picture>
       {%- endif -%}
+
+      {%- comment %} CTA overlaid on the illustration (mobile layout only). {%- endcomment %}
+      <div class="gift-banner__media-cta">{{ main_cta }}</div>
     </div>
 
     <div class="gift-banner__content">
@@ -181,6 +184,11 @@
     display: block;
     user-select: none;
     pointer-events: none;
+  }
+
+  /* The over-the-image CTA only appears in the mobile layout. */
+  .gift-banner__media-cta {
+    display: none;
   }
 
   /* Copy container: overlays the illustration (no panel), like the Figma.
@@ -299,17 +307,54 @@
       display: none;
     }
 
-    /* Same overlay as desktop, just a taller hero and tighter copy panel so
-       the text keeps sitting over the illustration when the window is narrow. */
+    /* Mobile (Figma) layout: copy on white ABOVE, illustration BELOW with the
+       "Shop now" CTA overlaid on it. */
     .gift-banner__hero {
-      min-height: min(125vw, 560px);
+      flex-direction: column;
+      align-items: stretch;
+      min-height: 0;
+      overflow: visible;
     }
+
+    /* Copy block first, centered on white. */
     .gift-banner__content {
+      order: 1;
+      position: static;
       max-width: none;
-      margin: 0 1rem 1.5rem;
+      margin: 0;
+      padding: 2rem 1.4rem 1.6rem;
+      text-align: center;
     }
     .gift-banner__heading {
       font-size: clamp(2.1rem, 10vw, 3rem);
+    }
+    /* Hide the in-copy CTA on mobile; the over-image one is used instead. */
+    .gift-banner__content-cta {
+      display: none;
+    }
+
+    /* Illustration below, flowing at its natural ratio. */
+    .gift-banner__media {
+      order: 2;
+      position: relative;
+      inset: auto;
+    }
+    .gift-banner__bg {
+      position: relative;
+      height: auto;
+      object-fit: contain;
+    }
+
+    /* Center the CTA over the illustration. */
+    .gift-banner__media-cta {
+      display: grid;
+      place-items: center;
+      position: absolute;
+      inset: 0;
+      pointer-events: none; /* only the button itself is interactive */
+    }
+    .gift-banner__media-cta .gift-btn {
+      pointer-events: auto;
     }
   }
 {% endstylesheet %}
