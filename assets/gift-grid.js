@@ -1,13 +1,10 @@
+/* Quick-view popup + AJAX add-to-cart for the Gift Grid section. Vanilla JS. */
 (function () {
   'use strict';
 
-  // The bundle add-on fires when the selected variant matches EVERY group
-  // below (one value per group). Each group lists accepted synonyms, so a
-  // size stored as "Medium" or its abbreviation "M" both qualify.
-  var BUNDLE_TRIGGER_GROUPS = [
-    ['black'],
-    ['medium', 'm'],
-  ];
+  // Bundle fires when the variant matches every group (synonyms allowed per
+  // group), so a size stored as "Medium" or its abbreviation "M" both qualify.
+  var BUNDLE_TRIGGER_GROUPS = [['black'], ['medium', 'm']];
 
   var COLOR_MAP = {
     black: '#0a0a0a',
@@ -29,6 +26,8 @@
   };
   var INK = '#0a0a0a';
 
+  // Accent for a selected colour swatch; light values fall back to ink so the
+  // indicator stays visible on the white swatch.
   function swatchAccent(value) {
     var key = String(value).toLowerCase().trim();
     var hex = COLOR_MAP[key];
@@ -59,7 +58,6 @@
     this.popup = document.getElementById(section.dataset.popupId);
     if (!this.popup) return;
 
-    // Cache popup sub-elements once.
     this.els = {
       dialog: this.popup.querySelector('.gift-popup__dialog'),
       image: this.popup.querySelector('[data-popup-image]'),
@@ -72,9 +70,9 @@
       addLabel: this.popup.querySelector('[data-add-label]'),
     };
 
-    this.product = null; // currently displayed product payload
+    this.product = null;
     this.selection = {}; // { optionName(lower): value }
-    this.lastFocused = null; // element to restore focus to on close
+    this.lastFocused = null;
 
     this.bindEvents();
   }
@@ -82,7 +80,6 @@
   GiftGrid.prototype.bindEvents = function () {
     var self = this;
 
-    // Open popup from any hotspot inside this section.
     this.section.addEventListener('click', function (e) {
       var hotspot = e.target.closest('[data-hotspot]');
       if (!hotspot) return;
@@ -96,25 +93,20 @@
       }
     });
 
-    // Close on overlay / close button.
     this.popup.addEventListener('click', function (e) {
       if (e.target.closest('[data-popup-close]')) self.close();
     });
 
-    // Close on ESC, keep focus inside the dialog while open.
     document.addEventListener('keydown', function (e) {
       if (self.popup.hidden) return;
       if (e.key === 'Escape') self.close();
       if (e.key === 'Tab') self.trapFocus(e);
     });
 
-    // Add to cart.
     this.els.add.addEventListener('click', function () {
       self.addToCart();
     });
   };
-
-  /* ---- Open / close --------------------------------------------------- */
 
   GiftGrid.prototype.open = function (product, trigger) {
     this.product = product;
@@ -132,8 +124,7 @@
     this.updateVariant();
 
     this.popup.hidden = false;
-    document.body.style.overflow = 'hidden'; // prevent background scroll
-    // Focus the first interactive control for accessibility.
+    document.body.style.overflow = 'hidden';
     var focusable = this.getFocusable();
     if (focusable.length) focusable[0].focus();
   };
@@ -146,8 +137,6 @@
     }
   };
 
-  /* ---- Variant option controls --------------------------------------- */
-
   GiftGrid.prototype.buildOptions = function () {
     var self = this;
     var options = this.product.options || [];
@@ -155,7 +144,6 @@
 
     options.forEach(function (option) {
       var key = option.name.toLowerCase();
-      // Default selection = first value for each option.
       self.selection[key] = option.values[0];
 
       var group = document.createElement('div');
@@ -166,7 +154,7 @@
       label.textContent = option.name;
       group.appendChild(label);
 
-      // "Size" -> dropdown; everything else (Color, ...) -> swatch buttons.
+      // Size -> dropdown; any other option (Colour, ...) -> swatch buttons.
       if (key.indexOf('size') !== -1) {
         group.appendChild(self.buildSelect(option, key));
       } else {
@@ -177,7 +165,6 @@
     });
   };
 
-  // Swatch buttons (used for Color and any non-size option).
   GiftGrid.prototype.buildSwatches = function (option, key) {
     var self = this;
     var wrap = document.createElement('div');
@@ -189,11 +176,9 @@
       btn.className = 'gift-popup__swatch';
       btn.textContent = value;
       btn.setAttribute('aria-pressed', index === 0 ? 'true' : 'false');
-      // Per-swatch accent used by the selected-state styling.
       btn.style.setProperty('--swatch-accent', swatchAccent(value));
       btn.addEventListener('click', function () {
         self.selection[key] = value;
-        // Reflect pressed state across the group.
         wrap.querySelectorAll('.gift-popup__swatch').forEach(function (el) {
           el.setAttribute('aria-pressed', el === btn ? 'true' : 'false');
         });
@@ -204,7 +189,6 @@
     return wrap;
   };
 
-  // Dropdown (used for Size). Starts on a neutral "Choose your size" prompt.
   GiftGrid.prototype.buildSelect = function (option, key) {
     var self = this;
     var select = document.createElement('select');
@@ -222,7 +206,7 @@
       select.appendChild(opt);
     });
 
-    // No default size selected so the shopper must choose one.
+    // No default size, so the shopper must actively choose one.
     self.selection[key] = '';
 
     select.addEventListener('change', function () {
@@ -232,9 +216,7 @@
     return select;
   };
 
-  /* ---- Variant resolution -------------------------------------------- */
-
-  // Find the variant whose option values match the current selection.
+  // The variant whose option values match the current selection.
   GiftGrid.prototype.getSelectedVariant = function () {
     var options = this.product.options || [];
     var selection = this.selection;
@@ -248,7 +230,6 @@
     );
   };
 
-  // Keep the price + Add-to-cart button in sync with the current selection.
   GiftGrid.prototype.updateVariant = function () {
     var variant = this.getSelectedVariant();
     var allChosen = (this.product.options || []).every(function (o) {
@@ -271,13 +252,10 @@
     }
   };
 
-  /* ---- Add to cart ---------------------------------------------------- */
-
   GiftGrid.prototype.addToCart = function () {
     var self = this;
     var variant = this.getSelectedVariant();
 
-    // Guard: require a complete, available selection.
     var missing = (this.product.options || []).some(function (o) {
       return !this.selection[o.name.toLowerCase()];
     }, this);
@@ -292,7 +270,7 @@
 
     var items = [{ id: variant.id, quantity: 1 }];
 
-    // Bundle rule: Black + Medium also adds the section's bundle product.
+    // Black + Medium also adds the section's bundle product.
     if (this.shouldBundle(variant)) {
       var bundleId = parseInt(this.section.dataset.bundleVariant, 10);
       if (bundleId) items.push({ id: bundleId, quantity: 1 });
@@ -325,8 +303,6 @@
       });
   };
 
-  // True when the selected variant satisfies every trigger group (e.g. a
-  // "Black" value AND a "Medium"/"M" value).
   GiftGrid.prototype.shouldBundle = function (variant) {
     if (!this.section.dataset.bundleVariant) return false;
     var values = variant.options.map(function (v) {
@@ -339,7 +315,6 @@
     });
   };
 
-  // Success feedback + let the theme know the cart changed.
   GiftGrid.prototype.onAdded = function () {
     var self = this;
     this.els.addLabel.textContent = 'ADDED ✓';
@@ -351,11 +326,8 @@
     }, 900);
   };
 
-  /* ---- Cart UI refresh ------------------------------------------------ */
-
-  // Nudge the host theme to update its cart bubble / drawer. We stay generic:
-  // publish the events common themes listen for, and update any element that
-  // exposes the item count, so this works without hard-wiring to Horizon.
+  // Update the cart count and fire the events common themes listen for, so the
+  // header/drawer refreshes without hard-wiring to Horizon internals.
   GiftGrid.prototype.refreshCartUI = function () {
     fetch('/cart.js', { headers: { Accept: 'application/json' } })
       .then(function (r) {
@@ -367,7 +339,6 @@
           .forEach(function (el) {
             el.textContent = cart.item_count;
           });
-        // Fire widely-used cart events so theme scripts can react.
         document.dispatchEvent(
           new CustomEvent('cart:refresh', { bubbles: true, detail: cart }),
         );
@@ -381,12 +352,8 @@
           window.Shopify.onCartUpdate(cart);
         }
       })
-      .catch(function () {
-        /* non-fatal: item is already in the cart */
-      });
+      .catch(function () {});
   };
-
-  /* ---- Small helpers -------------------------------------------------- */
 
   GiftGrid.prototype.setLoading = function (loading) {
     this.els.add.disabled = loading;
@@ -415,7 +382,7 @@
       });
   };
 
-  // Simple focus trap so keyboard users stay within the open dialog.
+  // Keep keyboard focus within the open dialog.
   GiftGrid.prototype.trapFocus = function (e) {
     var focusable = this.getFocusable();
     if (!focusable.length) return;
@@ -430,10 +397,6 @@
     }
   };
 
-  /* ----------------------------------------------------------------------
-   * Boot: initialise every Gift Grid section (also re-runs in the theme
-   * editor when a section is added or reloaded).
-   * -------------------------------------------------------------------- */
   function init(scope) {
     (scope || document)
       .querySelectorAll('[data-gift-grid]')
@@ -452,7 +415,7 @@
     });
   }
 
-  // Shopify theme editor lifecycle events.
+  // Re-init when a section is added/reloaded in the theme editor.
   document.addEventListener('shopify:section:load', function (e) {
     init(e.target);
   });

@@ -1,23 +1,9 @@
 {% comment %}
-  ---------------------------------------------------------------------------
-  Gift Grid  ("Tisso vison in the wild")
-  ---------------------------------------------------------------------------
-  Custom, built-from-scratch section that renders up to six product tiles in a
-  3 x 2 grid (2 x 3 on mobile). Each tile carries a circular "+" hotspot that
-  opens a product quick-view popup.
-
-  Data flow
-  ---------
-  · The merchant selects a product for every block from the customizer.
-  · For each product we emit a small JSON payload (title / price / description /
-    image / options / variants) inside the tile. The popup is built from that
-    payload on the client, so no extra network request is needed to show it.
-  · "Add to cart" posts to the AJAX Cart API (/cart/add.js) from gift-grid.js.
-  · Bundle rule: when the chosen variant combines the values "Black" and
-    "Medium", the section's bundle product (e.g. "Soft Winter Jacket") is added
-    to the cart automatically. The bundle product's first available variant id
-    is passed via `data-bundle-variant`.
-  ---------------------------------------------------------------------------
+  Gift Grid: up to six merchant-selected product tiles, each with a "+" hotspot
+  that opens a quick-view popup. Each tile emits a trimmed product JSON payload
+  that gift-grid.js reads to build the popup and add to cart (/cart/add.js).
+  The bundle product's first available variant id is exposed for the Black +
+  Medium auto-add rule.
 {% endcomment %}
 
 {%- liquid
@@ -45,8 +31,7 @@
     {%- for block in section.blocks -%}
       {%- liquid
         assign product = block.settings.product
-        # The tile image can be overridden per block, else fall back to the
-        # product's featured image.
+        # Per-block image override, else the product's featured image.
         assign tile_image = block.settings.image | default: product.featured_image
       -%}
       <article
@@ -75,7 +60,6 @@
         {%- endif -%}
 
         {%- if product != blank -%}
-          {%- comment %} Circular hotspot; position is configurable per block. {% endcomment -%}
           <button
             type="button"
             class="gift-grid__hotspot"
@@ -87,7 +71,6 @@
             <span aria-hidden="true">+</span>
           </button>
 
-          {%- comment %} Trimmed product payload consumed by gift-grid.js. {% endcomment -%}
           <script type="application/json" data-product-json>
             {
               "id": {{ product.id }},
@@ -128,10 +111,7 @@
   </div>
 </section>
 
-{%- comment %}
-  A single popup element is shared by every tile in this section. It lives at
-  the end of the section and is populated on demand by gift-grid.js.
-{% endcomment -%}
+{%- comment %} One popup shared by every tile; populated on demand by gift-grid.js. {% endcomment -%}
 <div
   class="gift-popup"
   id="gift-popup-{{ section.id }}"
@@ -155,7 +135,6 @@
       </div>
     </div>
 
-    {%- comment %} Variant option controls get injected here. {% endcomment -%}
     <div class="gift-popup__options" data-popup-options></div>
 
     <p class="gift-popup__error" data-popup-error hidden></p>
@@ -207,7 +186,6 @@
   }
   .gift-grid__image--placeholder svg { width: 100%; height: 100%; }
 
-  /* ---- Hotspot ------------------------------------------------------ */
   .gift-grid__hotspot {
     position: absolute;
     transform: translate(-50%, -50%);
@@ -234,7 +212,6 @@
     transform: translate(-50%, -50%) scale(1.1);
   }
 
-  /* ---- Popup -------------------------------------------------------- */
   .gift-popup[hidden] { display: none; }
   .gift-popup {
     position: fixed;
@@ -339,7 +316,7 @@
 
   .gift-popup__error { margin: 0 0 1rem; color: #c0202a; font-size: 0.82rem; }
 
-  /* Self-contained Add-to-cart button (does not depend on the Banner section) */
+  /* Self-contained so the Grid doesn't rely on the Banner's button styles. */
   .gift-popup__add {
     display: inline-flex;
     align-items: center;
@@ -377,7 +354,6 @@
     .gift-popup__add-arrow { transition: none; }
   }
 
-  /* ---- Mobile ------------------------------------------------------- */
   @media (max-width: 749px) {
     .gift-grid { padding: 2.5rem 1rem 3rem; }
     .gift-grid__title { text-align: center; }

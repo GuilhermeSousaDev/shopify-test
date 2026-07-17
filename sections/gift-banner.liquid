@@ -7,7 +7,6 @@
   class="gift-banner"
   aria-label="{{ s.heading | default: 'Gift banner' | escape }}"
 >
-  {%- comment %} Top utility bar {%- endcomment %}
   <div class="gift-banner__topbar">
     <div class="gift-banner__logo">{{ s.logo_text | escape }}</div>
 
@@ -30,11 +29,7 @@
     {%- endif -%}
   </div>
 
-  {%- comment %}
-    Reusable "Shop now" CTA. It is rendered in two places so each layout can
-    place it faithfully: inside the copy block on desktop (bottom-left over the
-    art) and overlaid on the illustration on mobile. Only one is ever visible.
-  {%- endcomment %}
+  {%- comment %} Rendered twice (in the copy on desktop, over the art on mobile); only one shows. {%- endcomment %}
   {%- capture main_cta -%}
     {%- if s.main_button_label != blank -%}
       <a
@@ -47,11 +42,9 @@
     {%- endif -%}
   {%- endcapture -%}
 
-  {%- comment %} Hero body: background illustration + copy block {%- endcomment %}
   <div class="gift-banner__hero">
     <div class="gift-banner__media">
       {%- if s.background_image != blank -%}
-        {%- comment %} Optional raster override uploaded from the customizer. {%- endcomment %}
         <img
           class="gift-banner__bg"
           src="{{ s.background_image | image_url: width: 2400 }}"
@@ -68,10 +61,7 @@
           height="{{ s.background_image.height }}"
         >
       {%- else -%}
-        {%- comment %}
-          Default brand illustration. Distinct SVG art for mobile and desktop,
-          served from theme assets (SVGs can't go through the image_url filter).
-        {%- endcomment %}
+        {%- comment %} Default art: separate mobile/desktop SVGs (SVGs bypass the image_url filter). {%- endcomment %}
         <picture class="gift-banner__bg-picture">
           <source
             media="(max-width: 749px)"
@@ -90,7 +80,6 @@
         </picture>
       {%- endif -%}
 
-      {%- comment %} CTA overlaid on the illustration (mobile layout only). {%- endcomment %}
       <div class="gift-banner__media-cta">{{ main_cta }}</div>
     </div>
 
@@ -100,11 +89,7 @@
       {%- endif -%}
 
       {%- if s.body_text != blank -%}
-        {%- comment %}
-          Desktop shows the full paragraph; mobile shows a shorter version.
-          The short copy is taken from "Body text (mobile)" if set, otherwise
-          it falls back to the first sentence of the full paragraph.
-        {%- endcomment %}
+        {%- comment %} Desktop: full paragraph. Mobile: "Body text (mobile)" or the first sentence. {%- endcomment %}
         <div class="gift-banner__body gift-banner__body--full">{{ s.body_text }}</div>
 
         {%- liquid
@@ -121,7 +106,6 @@
     </div>
   </div>
 
-  {%- comment %} Bottom info strip {%- endcomment %}
   {%- if s.bottom_text != blank -%}
     <div class="gift-banner__strip">{{ s.bottom_text | escape }}</div>
   {%- endif -%}
@@ -145,7 +129,6 @@
     box-sizing: border-box;
   }
 
-  /* ---- Top utility bar ---------------------------------------------- */
   .gift-banner__topbar {
     display: grid;
     grid-template-columns: 1fr auto 1fr;
@@ -179,7 +162,6 @@
     overflow: hidden;
   }
 
-  /* Illustration layer: sits behind the copy at every width. */
   .gift-banner__media {
     position: absolute;
     inset: 0;
@@ -205,9 +187,8 @@
     display: none;
   }
 
-  /* Copy container: overlays the illustration (no panel), like the Figma.
-     It keeps its own box so the art passes behind it and the text is never
-     clipped or covered when the hero resizes. */
+  /* Copy overlays the illustration; its own box keeps the art behind it and
+     the text from being clipped when the hero resizes. */
   .gift-banner__content {
     position: relative;
     z-index: 1;
@@ -237,7 +218,6 @@
     display: none;
   }
 
-  /* ---- Bottom strip ------------------------------------------------- */
   .gift-banner__strip {
     padding: 0.85rem 1.5rem;
     text-align: center;
@@ -247,7 +227,6 @@
     text-transform: uppercase;
   }
 
-  /* ---- Buttons (shared) --------------------------------------------- */
   .gift-btn {
     --gb-btn-fg: #0a0a0a;
     display: inline-flex;
@@ -265,7 +244,6 @@
     transition: background-color 0.25s ease, color 0.25s ease, transform 0.25s ease;
   }
 
-  /* Yellow pill button (top bar) */
   .gift-btn--pill {
     background: var(--gb-accent);
     border: 1px solid var(--gb-accent);
@@ -277,7 +255,6 @@
     --gb-btn-fg: #fff;
   }
 
-  /* Solid black button (hero) */
   .gift-btn--solid {
     background: var(--gb-ink);
     color: #fff;
@@ -312,9 +289,7 @@
     }
   }
 
-  /* ---- Mobile ------------------------------------------------------- */
   @media (max-width: 749px) {
-    /* Center the logo; drop the tagline + top CTA to match the mobile mockup. */
     .gift-banner__topbar {
       grid-template-columns: 1fr;
       justify-items: center;
@@ -325,8 +300,7 @@
       display: none;
     }
 
-    /* Mobile (Figma) layout: copy on white ABOVE, illustration BELOW with the
-       "Shop now" CTA overlaid on it. */
+    /* Figma mobile: copy on white above, illustration below with the CTA on it. */
     .gift-banner__hero {
       flex-direction: column;
       align-items: stretch;
@@ -334,7 +308,6 @@
       overflow: visible;
     }
 
-    /* Copy block first, centered on white. */
     .gift-banner__content {
       order: 1;
       position: static;
@@ -346,19 +319,17 @@
     .gift-banner__heading {
       font-size: clamp(2.1rem, 10vw, 3rem);
     }
-    /* Swap to the shorter mobile paragraph. */
     .gift-banner__body--full {
       display: none;
     }
     .gift-banner__body--short {
       display: block;
     }
-    /* Hide the in-copy CTA on mobile; the over-image one is used instead. */
+    /* On mobile the over-image CTA is used instead of the in-copy one. */
     .gift-banner__content-cta {
       display: none;
     }
 
-    /* Illustration below, flowing at its natural ratio. */
     .gift-banner__media {
       order: 2;
       position: relative;
