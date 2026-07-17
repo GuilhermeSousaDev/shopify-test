@@ -49,6 +49,7 @@
   {%- comment %} Hero body: background illustration + copy block {% endcomment -%}
   <div class="gift-banner__hero">
     {%- if s.background_image != blank -%}
+      {%- comment %} Optional raster override uploaded from the customizer. {% endcomment -%}
       <img
         class="gift-banner__bg"
         src="{{ s.background_image | image_url: width: 2400 }}"
@@ -64,6 +65,27 @@
         width="{{ s.background_image.width }}"
         height="{{ s.background_image.height }}"
       >
+    {%- else -%}
+      {%- comment %}
+        Default brand illustration. Distinct SVG art for mobile and desktop,
+        served from theme assets (SVGs can't go through the image_url filter).
+      {% endcomment -%}
+      <picture class="gift-banner__bg-picture">
+        <source
+          media="(max-width: 749px)"
+          srcset="{{ 'gift-banner-mobile.svg' | asset_url }}"
+          width="1052"
+          height="400"
+        >
+        <img
+          class="gift-banner__bg"
+          src="{{ 'gift-banner-desktop.svg' | asset_url }}"
+          alt=""
+          loading="eager"
+          width="1440"
+          height="780"
+        >
+      </picture>
     {%- endif -%}
 
     <div class="gift-banner__content">
@@ -139,6 +161,9 @@
     min-height: clamp(460px, 72vh, 760px);
     overflow: hidden;
   }
+
+  /* `display: contents` lets the inner <img> position against the hero. */
+  .gift-banner__bg-picture { display: contents; }
 
   .gift-banner__bg {
     position: absolute;
@@ -273,11 +298,11 @@
     .gift-banner__heading { font-size: clamp(2.2rem, 11vw, 3rem); }
     .gift-banner__content .gift-btn { display: inline-flex; }
 
-    /* Illustration flows in-line below the copy (no longer absolute). */
+    /* Illustration flows in-line below the copy at its natural ratio. */
     .gift-banner__bg {
       position: relative;
       height: auto;
-      aspect-ratio: 16 / 11;
+      object-fit: contain;
     }
   }
 {% endstylesheet %}
