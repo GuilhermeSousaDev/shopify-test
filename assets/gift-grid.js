@@ -17,12 +17,53 @@
 (function () {
   'use strict';
 
-  // Values that trigger the automatic bundle add-on (case-insensitive).
   var BUNDLE_TRIGGER = ['black', 'medium'];
 
-  /* ----------------------------------------------------------------------
-   * Controller: one instance per Gift Grid section on the page.
-   * -------------------------------------------------------------------- */
+  var COLOR_MAP = {
+    black: '#0a0a0a',
+    white: '#ffffff',
+    grey: '#8a8a8a',
+    gray: '#8a8a8a',
+    blue: '#1030ff',
+    navy: '#1a2a6c',
+    red: '#d32f2f',
+    green: '#2e7d32',
+    beige: '#d8c9a3',
+    brown: '#795548',
+    pink: '#e0409b',
+    yellow: '#ffd400',
+    orange: '#ff6d00',
+    purple: '#7b1fa2',
+    silver: '#c0c0c0',
+    gold: '#c9a227',
+  };
+  var INK = '#0a0a0a';
+
+  function swatchAccent(value) {
+    var key = String(value).toLowerCase().trim();
+    var hex = COLOR_MAP[key];
+    if (
+      !hex &&
+      typeof CSS !== 'undefined' &&
+      CSS.supports &&
+      CSS.supports('color', key)
+    ) {
+      hex = key;
+    }
+    if (!hex) return INK;
+    return isLight(hex) ? INK : hex;
+  }
+
+  function isLight(color) {
+    var m = /^#?([0-9a-f]{6})$/i.exec(color);
+    if (!m) return false;
+    var n = parseInt(m[1], 16);
+    var r = (n >> 16) & 255,
+      g = (n >> 8) & 255,
+      b = n & 255;
+    return 0.299 * r + 0.587 * g + 0.114 * b > 200;
+  }
+
   function GiftGrid(section) {
     this.section = section;
     this.popup = document.getElementById(section.dataset.popupId);
@@ -38,7 +79,7 @@
       options: this.popup.querySelector('[data-popup-options]'),
       error: this.popup.querySelector('[data-popup-error]'),
       add: this.popup.querySelector('[data-popup-add]'),
-      addLabel: this.popup.querySelector('[data-add-label]')
+      addLabel: this.popup.querySelector('[data-add-label]'),
     };
 
     this.product = null; // currently displayed product payload
@@ -158,6 +199,8 @@
       btn.className = 'gift-popup__swatch';
       btn.textContent = value;
       btn.setAttribute('aria-pressed', index === 0 ? 'true' : 'false');
+      // Per-swatch accent used by the selected-state styling.
+      btn.style.setProperty('--swatch-accent', swatchAccent(value));
       btn.addEventListener('click', function () {
         self.selection[key] = value;
         // Reflect pressed state across the group.
@@ -205,12 +248,14 @@
   GiftGrid.prototype.getSelectedVariant = function () {
     var options = this.product.options || [];
     var selection = this.selection;
-    return (this.product.variants || []).find(function (variant) {
-      return options.every(function (option, i) {
-        var chosen = selection[option.name.toLowerCase()];
-        return chosen && variant.options[i] === chosen;
-      });
-    }) || null;
+    return (
+      (this.product.variants || []).find(function (variant) {
+        return options.every(function (option, i) {
+          var chosen = selection[option.name.toLowerCase()];
+          return chosen && variant.options[i] === chosen;
+        });
+      }) || null
+    );
   };
 
   // Keep the price + Add-to-cart button in sync with the current selection.
@@ -226,9 +271,8 @@
 
     var addable = variant && variant.available;
     this.els.add.disabled = !addable;
-    this.els.addLabel.textContent = variant && !variant.available
-      ? 'SOLD OUT'
-      : 'ADD TO CART';
+    this.els.addLabel.textContent =
+      variant && !variant.available ? 'SOLD OUT' : 'ADD TO CART';
 
     if (allChosen && variant && !variant.available) {
       this.showError('This combination is sold out.');
@@ -267,12 +311,16 @@
     this.setLoading(true);
     fetch('/cart/add.js', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-      body: JSON.stringify({ items: items })
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+      body: JSON.stringify({ items: items }),
     })
       .then(function (res) {
         return res.json().then(function (data) {
-          if (!res.ok) throw new Error(data.description || 'Unable to add to cart.');
+          if (!res.ok)
+            throw new Error(data.description || 'Unable to add to cart.');
           return data;
         });
       })
@@ -317,19 +365,32 @@
   // exposes the item count, so this works without hard-wiring to Horizon.
   GiftGrid.prototype.refreshCartUI = function () {
     fetch('/cart.js', { headers: { Accept: 'application/json' } })
-      .then(function (r) { return r.json(); })
+      .then(function (r) {
+        return r.json();
+      })
       .then(function (cart) {
-        document.querySelectorAll('.cart-count-bubble, [data-cart-count]').forEach(function (el) {
-          el.textContent = cart.item_count;
-        });
+        document
+          .querySelectorAll('.cart-count-bubble, [data-cart-count]')
+          .forEach(function (el) {
+            el.textContent = cart.item_count;
+          });
         // Fire widely-used cart events so theme scripts can react.
-        document.dispatchEvent(new CustomEvent('cart:refresh', { bubbles: true, detail: cart }));
-        document.dispatchEvent(new CustomEvent('cart:build', { bubbles: true, detail: cart }));
-        if (window.Shopify && typeof window.Shopify.onCartUpdate === 'function') {
+        document.dispatchEvent(
+          new CustomEvent('cart:refresh', { bubbles: true, detail: cart }),
+        );
+        document.dispatchEvent(
+          new CustomEvent('cart:build', { bubbles: true, detail: cart }),
+        );
+        if (
+          window.Shopify &&
+          typeof window.Shopify.onCartUpdate === 'function'
+        ) {
           window.Shopify.onCartUpdate(cart);
         }
       })
-      .catch(function () { /* non-fatal: item is already in the cart */ });
+      .catch(function () {
+        /* non-fatal: item is already in the cart */
+      });
   };
 
   /* ---- Small helpers -------------------------------------------------- */
@@ -350,11 +411,15 @@
   };
 
   GiftGrid.prototype.getFocusable = function () {
-    return Array.prototype.slice.call(
-      this.els.dialog.querySelectorAll(
-        'button, [href], select, input, [tabindex]:not([tabindex="-1"])'
+    return Array.prototype.slice
+      .call(
+        this.els.dialog.querySelectorAll(
+          'button, [href], select, input, [tabindex]:not([tabindex="-1"])',
+        ),
       )
-    ).filter(function (el) { return !el.disabled && el.offsetParent !== null; });
+      .filter(function (el) {
+        return !el.disabled && el.offsetParent !== null;
+      });
   };
 
   // Simple focus trap so keyboard users stay within the open dialog.
@@ -377,19 +442,25 @@
    * editor when a section is added or reloaded).
    * -------------------------------------------------------------------- */
   function init(scope) {
-    (scope || document).querySelectorAll('[data-gift-grid]').forEach(function (section) {
-      if (section.dataset.giftGridReady) return;
-      section.dataset.giftGridReady = 'true';
-      new GiftGrid(section);
-    });
+    (scope || document)
+      .querySelectorAll('[data-gift-grid]')
+      .forEach(function (section) {
+        if (section.dataset.giftGridReady) return;
+        section.dataset.giftGridReady = 'true';
+        new GiftGrid(section);
+      });
   }
 
   if (document.readyState !== 'loading') {
     init();
   } else {
-    document.addEventListener('DOMContentLoaded', function () { init(); });
+    document.addEventListener('DOMContentLoaded', function () {
+      init();
+    });
   }
 
   // Shopify theme editor lifecycle events.
-  document.addEventListener('shopify:section:load', function (e) { init(e.target); });
+  document.addEventListener('shopify:section:load', function (e) {
+    init(e.target);
+  });
 })();
