@@ -183,16 +183,14 @@
     pointer-events: none;
   }
 
-  /* Copy container: the illustration passes behind this frosted panel. */
+  /* Copy container: overlays the illustration (no panel), like the Figma.
+     It keeps its own box so the art passes behind it and the text is never
+     clipped or covered when the hero resizes. */
   .gift-banner__content {
     position: relative;
     z-index: 1;
     max-width: min(90%, 560px);
     margin: 0 0 3rem 2.2rem;
-    padding: 1.9rem 2rem;
-    background: rgba(255, 255, 255, 0.78);
-    backdrop-filter: blur(2px);
-    -webkit-backdrop-filter: blur(2px);
   }
 
   .gift-banner__heading {
@@ -309,7 +307,6 @@
     .gift-banner__content {
       max-width: none;
       margin: 0 1rem 1.5rem;
-      padding: 1.4rem 1.3rem;
     }
     .gift-banner__heading {
       font-size: clamp(2.1rem, 10vw, 3rem);
