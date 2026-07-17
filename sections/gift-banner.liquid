@@ -100,7 +100,21 @@
       {%- endif -%}
 
       {%- if s.body_text != blank -%}
-        <div class="gift-banner__body">{{ s.body_text }}</div>
+        {%- comment %}
+          Desktop shows the full paragraph; mobile shows a shorter version.
+          The short copy is taken from "Body text (mobile)" if set, otherwise
+          it falls back to the first sentence of the full paragraph.
+        {%- endcomment %}
+        <div class="gift-banner__body gift-banner__body--full">{{ s.body_text }}</div>
+
+        {%- liquid
+          assign short_body = s.body_text_mobile
+          if short_body == blank
+            assign first_sentence = s.body_text | strip_html | split: '.' | first | strip
+            assign short_body = first_sentence | append: '.'
+          endif
+        -%}
+        <p class="gift-banner__body gift-banner__body--short">{{ short_body | escape }}</p>
       {%- endif -%}
 
       <div class="gift-banner__content-cta">{{ main_cta }}</div>
@@ -218,6 +232,10 @@
   .gift-banner__body p {
     margin: 0;
   }
+  /* Desktop shows the full paragraph; the short version is mobile-only. */
+  .gift-banner__body--short {
+    display: none;
+  }
 
   /* ---- Bottom strip ------------------------------------------------- */
   .gift-banner__strip {
@@ -328,6 +346,13 @@
     .gift-banner__heading {
       font-size: clamp(2.1rem, 10vw, 3rem);
     }
+    /* Swap to the shorter mobile paragraph. */
+    .gift-banner__body--full {
+      display: none;
+    }
+    .gift-banner__body--short {
+      display: block;
+    }
     /* Hide the in-copy CTA on mobile; the over-image one is used instead. */
     .gift-banner__content-cta {
       display: none;
@@ -412,6 +437,12 @@
       "id": "body_text",
       "label": "Body text",
       "default": "<p>Discover Joy: Your Ultimate Holiday Gift Destination. Explore our curated selection and find the perfect gifts to delight your loved ones this holiday season.</p>"
+    },
+    {
+      "type": "text",
+      "id": "body_text_mobile",
+      "label": "Body text (mobile)",
+      "info": "Shown instead of the full body text on mobile. Leave blank to use the first sentence automatically."
     },
     {
       "type": "text",
