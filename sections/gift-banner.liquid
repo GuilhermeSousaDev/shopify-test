@@ -1,0 +1,367 @@
+{% comment %}
+  ---------------------------------------------------------------------------
+  Gift Banner
+  ---------------------------------------------------------------------------
+  Custom hero section built from scratch for the "Gift Guide" page.
+  It reproduces the Tisso Vison banner from the Figma reference:
+
+    · a top utility bar  -> logo / tagline / "Choose gift" button
+    · a line-art hero    -> heading, paragraph and "Shop now" button
+    · a bottom info strip -> sustainability tagline
+
+  Every piece of copy inside the red rectangles of the brief is exposed as a
+  section setting so it can be edited from the theme customizer. The two call
+  to action buttons carry a small arrow animation on hover/focus.
+
+  All styles are scoped with the unique `#gift-banner-{{ section.id }}` id so
+  the section is fully self-contained and never clashes with the theme.
+  ---------------------------------------------------------------------------
+{% endcomment %}
+
+{%- liquid
+  assign s = section.settings
+-%}
+
+<section
+  id="gift-banner-{{ section.id }}"
+  class="gift-banner"
+  aria-label="{{ s.heading | default: 'Gift banner' | escape }}"
+>
+  {%- comment %} Top utility bar {% endcomment -%}
+  <div class="gift-banner__topbar">
+    <div class="gift-banner__logo">{{ s.logo_text | escape }}</div>
+
+    {%- if s.top_tagline != blank -%}
+      <p class="gift-banner__tagline">{{ s.top_tagline | escape }}</p>
+    {%- endif -%}
+
+    {%- if s.top_button_label != blank -%}
+      <a
+        class="gift-btn gift-btn--pill"
+        {% if s.top_button_link != blank %}href="{{ s.top_button_link }}"{% else %}href="#" role="button"{% endif %}
+      >
+        <span class="gift-btn__label">{{ s.top_button_label | escape }}</span>
+        <span class="gift-btn__arrow" aria-hidden="true">&#8594;</span>
+      </a>
+    {%- endif -%}
+  </div>
+
+  {%- comment %} Hero body: background illustration + copy block {% endcomment -%}
+  <div class="gift-banner__hero">
+    {%- if s.background_image != blank -%}
+      <img
+        class="gift-banner__bg"
+        src="{{ s.background_image | image_url: width: 2400 }}"
+        srcset="
+          {{ s.background_image | image_url: width: 800 }} 800w,
+          {{ s.background_image | image_url: width: 1200 }} 1200w,
+          {{ s.background_image | image_url: width: 1800 }} 1800w,
+          {{ s.background_image | image_url: width: 2400 }} 2400w
+        "
+        sizes="100vw"
+        alt=""
+        loading="eager"
+        width="{{ s.background_image.width }}"
+        height="{{ s.background_image.height }}"
+      >
+    {%- endif -%}
+
+    <div class="gift-banner__content">
+      {%- if s.heading != blank -%}
+        <h1 class="gift-banner__heading">{{ s.heading | escape }}</h1>
+      {%- endif -%}
+
+      {%- if s.body_text != blank -%}
+        <div class="gift-banner__body">{{ s.body_text }}</div>
+      {%- endif -%}
+
+      {%- if s.main_button_label != blank -%}
+        <a
+          class="gift-btn gift-btn--solid"
+          {% if s.main_button_link != blank %}href="{{ s.main_button_link }}"{% else %}href="#" role="button"{% endif %}
+        >
+          <span class="gift-btn__label">{{ s.main_button_label | escape }}</span>
+          <span class="gift-btn__arrow" aria-hidden="true">&#8594;</span>
+        </a>
+      {%- endif -%}
+    </div>
+  </div>
+
+  {%- comment %} Bottom info strip {% endcomment -%}
+  {%- if s.bottom_text != blank -%}
+    <div class="gift-banner__strip">{{ s.bottom_text | escape }}</div>
+  {%- endif -%}
+</section>
+
+{% stylesheet %}
+  .gift-banner {
+    --gb-accent: #ecff43;
+    --gb-ink: #0a0a0a;
+    --gb-bar-bg: #f4f4f4;
+    display: flex;
+    flex-direction: column;
+    background: #ffffff;
+    color: var(--gb-ink);
+    font-family: var(--gb-body-font, inherit);
+  }
+
+  /* ---- Top utility bar ---------------------------------------------- */
+  .gift-banner__topbar {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.1rem 2.2rem;
+    background: var(--gb-bar-bg);
+  }
+
+  .gift-banner__logo {
+    font-weight: 700;
+    font-size: clamp(1.1rem, 1.6vw, 1.5rem);
+    letter-spacing: 0.08em;
+  }
+
+  .gift-banner__tagline {
+    margin: 0;
+    text-align: center;
+    font-size: clamp(0.85rem, 1.2vw, 1rem);
+  }
+
+  .gift-banner__topbar .gift-btn {
+    justify-self: end;
+  }
+
+  /* ---- Hero --------------------------------------------------------- */
+  .gift-banner__hero {
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    min-height: clamp(460px, 72vh, 760px);
+    overflow: hidden;
+  }
+
+  .gift-banner__bg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    z-index: 0;
+    user-select: none;
+    pointer-events: none;
+  }
+
+  .gift-banner__content {
+    position: relative;
+    z-index: 1;
+    max-width: 44ch;
+    padding: 0 2.2rem 3.4rem;
+  }
+
+  .gift-banner__heading {
+    margin: 0 0 1.4rem;
+    font-family: var(--gb-heading-font, inherit);
+    font-weight: 800;
+    line-height: 0.98;
+    letter-spacing: -0.01em;
+    font-size: clamp(2.6rem, 6vw, 5rem);
+  }
+
+  .gift-banner__body {
+    margin: 0 0 2rem;
+    font-size: clamp(1rem, 1.4vw, 1.2rem);
+    line-height: 1.5;
+  }
+  .gift-banner__body p { margin: 0; }
+
+  /* ---- Bottom strip ------------------------------------------------- */
+  .gift-banner__strip {
+    padding: 0.85rem 1.5rem;
+    text-align: center;
+    background: var(--gb-bar-bg);
+    font-size: clamp(0.8rem, 1.1vw, 0.95rem);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  /* ---- Buttons (shared) --------------------------------------------- */
+  .gift-btn {
+    --gb-btn-fg: #0a0a0a;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.9rem;
+    padding: 0.85rem 1.6rem;
+    font-size: clamp(0.82rem, 1vw, 0.95rem);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: var(--gb-btn-fg);
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background-color 0.25s ease, color 0.25s ease, transform 0.25s ease;
+  }
+
+  /* Yellow pill button (top bar) */
+  .gift-btn--pill {
+    background: var(--gb-accent);
+    border: 1px solid var(--gb-accent);
+  }
+  .gift-btn--pill:hover,
+  .gift-btn--pill:focus-visible {
+    background: var(--gb-ink);
+    color: #fff;
+    --gb-btn-fg: #fff;
+  }
+
+  /* Solid black button (hero) */
+  .gift-btn--solid {
+    background: var(--gb-ink);
+    color: #fff;
+    --gb-btn-fg: #fff;
+    border: 1px solid var(--gb-ink);
+  }
+  .gift-btn--solid:hover,
+  .gift-btn--solid:focus-visible {
+    background: transparent;
+    color: var(--gb-ink);
+    --gb-btn-fg: #0a0a0a;
+  }
+
+  /* Arrow micro-animation: nudges to the right on hover/focus */
+  .gift-btn__arrow {
+    display: inline-block;
+    transition: transform 0.25s ease;
+    will-change: transform;
+  }
+  .gift-btn:hover .gift-btn__arrow,
+  .gift-btn:focus-visible .gift-btn__arrow {
+    transform: translateX(6px);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .gift-btn,
+    .gift-btn__arrow { transition: none; }
+    .gift-btn:hover .gift-btn__arrow { transform: none; }
+  }
+
+  /* ---- Mobile ------------------------------------------------------- */
+  @media (max-width: 749px) {
+    /* Center the logo; drop the tagline + top CTA to match the mobile mockup. */
+    .gift-banner__topbar {
+      grid-template-columns: 1fr;
+      justify-items: center;
+      padding: 1rem 1.1rem;
+    }
+    .gift-banner__tagline,
+    .gift-banner__topbar .gift-btn { display: none; }
+
+    /* Stack the copy on white above the illustration. */
+    .gift-banner__hero {
+      flex-direction: column;
+      align-items: stretch;
+      min-height: 0;
+    }
+    .gift-banner__content {
+      position: static;
+      order: -1;
+      max-width: none;
+      padding: 2rem 1.4rem 1.6rem;
+      text-align: center;
+    }
+    .gift-banner__heading { font-size: clamp(2.2rem, 11vw, 3rem); }
+    .gift-banner__content .gift-btn { display: inline-flex; }
+
+    /* Illustration flows in-line below the copy (no longer absolute). */
+    .gift-banner__bg {
+      position: relative;
+      height: auto;
+      aspect-ratio: 16 / 11;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Gift Banner",
+  "tag": "section",
+  "class": "section-gift-banner",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Top bar"
+    },
+    {
+      "type": "text",
+      "id": "logo_text",
+      "label": "Logo text",
+      "default": "TISSO VISON"
+    },
+    {
+      "type": "text",
+      "id": "top_tagline",
+      "label": "Tagline",
+      "default": "Find the ideal gift for your loved ones."
+    },
+    {
+      "type": "text",
+      "id": "top_button_label",
+      "label": "Button label",
+      "default": "CHOOSE GIFT"
+    },
+    {
+      "type": "url",
+      "id": "top_button_link",
+      "label": "Button link"
+    },
+    {
+      "type": "header",
+      "content": "Hero"
+    },
+    {
+      "type": "image_picker",
+      "id": "background_image",
+      "label": "Background illustration"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "The Gift Guide"
+    },
+    {
+      "type": "richtext",
+      "id": "body_text",
+      "label": "Body text",
+      "default": "<p>Discover Joy: Your Ultimate Holiday Gift Destination. Explore our curated selection and find the perfect gifts to delight your loved ones this holiday season.</p>"
+    },
+    {
+      "type": "text",
+      "id": "main_button_label",
+      "label": "Button label",
+      "default": "SHOP NOW"
+    },
+    {
+      "type": "url",
+      "id": "main_button_link",
+      "label": "Button link"
+    },
+    {
+      "type": "header",
+      "content": "Bottom strip"
+    },
+    {
+      "type": "text",
+      "id": "bottom_text",
+      "label": "Text",
+      "default": "SUSTAINABLE, ETHICALLY MADE CLOTHES IN SIZES XXS TO 6XL"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Gift Banner"
+    }
+  ]
+}
+{% endschema %}
