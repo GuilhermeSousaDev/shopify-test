@@ -1,23 +1,3 @@
-{% comment %}
-  ---------------------------------------------------------------------------
-  Gift Banner
-  ---------------------------------------------------------------------------
-  Custom hero section built from scratch for the "Gift Guide" page.
-  It reproduces the Tisso Vison banner from the Figma reference:
-
-    · a top utility bar  -> logo / tagline / "Choose gift" button
-    · a line-art hero    -> heading, paragraph and "Shop now" button
-    · a bottom info strip -> sustainability tagline
-
-  Every piece of copy inside the red rectangles of the brief is exposed as a
-  section setting so it can be edited from the theme customizer. The two call
-  to action buttons carry a small arrow animation on hover/focus.
-
-  All styles are scoped with the unique `#gift-banner-{{ section.id }}` id so
-  the section is fully self-contained and never clashes with the theme.
-  ---------------------------------------------------------------------------
-{% endcomment %}
-
 {%- liquid
   assign s = section.settings
 -%}
@@ -27,7 +7,7 @@
   class="gift-banner"
   aria-label="{{ s.heading | default: 'Gift banner' | escape }}"
 >
-  {%- comment %} Top utility bar {% endcomment -%}
+  {%- comment %} Top utility bar {%- endcomment %}
   <div class="gift-banner__topbar">
     <div class="gift-banner__logo">{{ s.logo_text | escape }}</div>
 
@@ -38,7 +18,11 @@
     {%- if s.top_button_label != blank -%}
       <a
         class="gift-btn gift-btn--pill"
-        {% if s.top_button_link != blank %}href="{{ s.top_button_link }}"{% else %}href="#" role="button"{% endif %}
+        {% if s.top_button_link != blank %}
+          href="{{ s.top_button_link }}"
+        {% else %}
+          href="#" role="button"
+        {% endif %}
       >
         <span class="gift-btn__label">{{ s.top_button_label | escape }}</span>
         <span class="gift-btn__arrow" aria-hidden="true">&#8594;</span>
@@ -50,7 +34,7 @@
     Reusable "Shop now" CTA. It is rendered in two places so each layout can
     place it faithfully: inside the copy block on desktop (bottom-left over the
     art) and overlaid on the illustration on mobile. Only one is ever visible.
-  {% endcomment -%}
+  {%- endcomment %}
   {%- capture main_cta -%}
     {%- if s.main_button_label != blank -%}
       <a
@@ -63,11 +47,11 @@
     {%- endif -%}
   {%- endcapture -%}
 
-  {%- comment %} Hero body: background illustration + copy block {% endcomment -%}
+  {%- comment %} Hero body: background illustration + copy block {%- endcomment %}
   <div class="gift-banner__hero">
     <div class="gift-banner__media">
       {%- if s.background_image != blank -%}
-        {%- comment %} Optional raster override uploaded from the customizer. {% endcomment -%}
+        {%- comment %} Optional raster override uploaded from the customizer. {%- endcomment %}
         <img
           class="gift-banner__bg"
           src="{{ s.background_image | image_url: width: 2400 }}"
@@ -87,7 +71,7 @@
         {%- comment %}
           Default brand illustration. Distinct SVG art for mobile and desktop,
           served from theme assets (SVGs can't go through the image_url filter).
-        {% endcomment -%}
+        {%- endcomment %}
         <picture class="gift-banner__bg-picture">
           <source
             media="(max-width: 749px)"
@@ -105,9 +89,6 @@
           >
         </picture>
       {%- endif -%}
-
-      {%- comment %} CTA overlaid on the illustration (mobile layout only). {% endcomment -%}
-      <div class="gift-banner__media-cta">{{ main_cta }}</div>
     </div>
 
     <div class="gift-banner__content">
@@ -119,12 +100,11 @@
         <div class="gift-banner__body">{{ s.body_text }}</div>
       {%- endif -%}
 
-      {%- comment %} CTA inside the copy (desktop layout only). {% endcomment -%}
       <div class="gift-banner__content-cta">{{ main_cta }}</div>
     </div>
   </div>
 
-  {%- comment %} Bottom info strip {% endcomment -%}
+  {%- comment %} Bottom info strip {%- endcomment %}
   {%- if s.bottom_text != blank -%}
     <div class="gift-banner__strip">{{ s.bottom_text | escape }}</div>
   {%- endif -%}
@@ -144,7 +124,9 @@
   }
   .gift-banner *,
   .gift-banner *::before,
-  .gift-banner *::after { box-sizing: border-box; }
+  .gift-banner *::after {
+    box-sizing: border-box;
+  }
 
   /* ---- Top utility bar ---------------------------------------------- */
   .gift-banner__topbar {
@@ -172,25 +154,24 @@
     justify-self: end;
   }
 
-  /* ---- Hero --------------------------------------------------------- */
-  /* The hero matches the illustration's native ratio so the art shows in
-     full (like the Figma) instead of being zoom-cropped. */
   .gift-banner__hero {
     position: relative;
     display: flex;
     align-items: flex-end;
-    aspect-ratio: 1440 / 780;
+    min-height: min(52vw, 680px);
     overflow: hidden;
   }
 
-  /* Illustration layer: fills the hero on desktop. */
+  /* Illustration layer: sits behind the copy at every width. */
   .gift-banner__media {
     position: absolute;
     inset: 0;
     z-index: 0;
   }
   /* `display: contents` lets the inner <img> size against the media layer. */
-  .gift-banner__bg-picture { display: contents; }
+  .gift-banner__bg-picture {
+    display: contents;
+  }
 
   .gift-banner__bg {
     width: 100%;
@@ -202,14 +183,16 @@
     pointer-events: none;
   }
 
-  /* The over-the-image CTA only appears in the mobile layout. */
-  .gift-banner__media-cta { display: none; }
-
+  /* Copy container: the illustration passes behind this frosted panel. */
   .gift-banner__content {
     position: relative;
     z-index: 1;
-    max-width: min(90%, 620px);
-    padding: 0 2.2rem 3.4rem;
+    max-width: min(90%, 560px);
+    margin: 0 0 3rem 2.2rem;
+    padding: 1.9rem 2rem;
+    background: rgba(255, 255, 255, 0.78);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
   }
 
   .gift-banner__heading {
@@ -226,7 +209,9 @@
     font-size: clamp(1rem, 1.4vw, 1.2rem);
     line-height: 1.5;
   }
-  .gift-banner__body p { margin: 0; }
+  .gift-banner__body p {
+    margin: 0;
+  }
 
   /* ---- Bottom strip ------------------------------------------------- */
   .gift-banner__strip {
@@ -295,8 +280,12 @@
 
   @media (prefers-reduced-motion: reduce) {
     .gift-btn,
-    .gift-btn__arrow { transition: none; }
-    .gift-btn:hover .gift-btn__arrow { transform: none; }
+    .gift-btn__arrow {
+      transition: none;
+    }
+    .gift-btn:hover .gift-btn__arrow {
+      transform: none;
+    }
   }
 
   /* ---- Mobile ------------------------------------------------------- */
@@ -308,46 +297,23 @@
       padding: 1rem 1.1rem;
     }
     .gift-banner__tagline,
-    .gift-banner__topbar .gift-btn { display: none; }
+    .gift-banner__topbar .gift-btn {
+      display: none;
+    }
 
-    /* Copy on white above; illustration (with CTA overlaid) below. */
+    /* Same overlay as desktop, just a taller hero and tighter copy panel so
+       the text keeps sitting over the illustration when the window is narrow. */
     .gift-banner__hero {
-      flex-direction: column;
-      align-items: stretch;
-      aspect-ratio: auto;
+      min-height: min(125vw, 560px);
     }
     .gift-banner__content {
-      order: 1;
-      position: static;
       max-width: none;
-      padding: 2rem 1.4rem 1.6rem;
-      text-align: center;
+      margin: 0 1rem 1.5rem;
+      padding: 1.4rem 1.3rem;
     }
-    .gift-banner__heading { font-size: clamp(2.2rem, 11vw, 3rem); }
-    /* Hide the in-copy CTA; use the one overlaid on the image instead. */
-    .gift-banner__content-cta { display: none; }
-
-    /* Illustration flows in-line at its natural ratio. */
-    .gift-banner__media {
-      order: 2;
-      position: relative;
-      inset: auto;
+    .gift-banner__heading {
+      font-size: clamp(2.1rem, 10vw, 3rem);
     }
-    .gift-banner__bg {
-      position: relative;
-      height: auto;
-      object-fit: contain;
-    }
-
-    /* Center the CTA over the illustration (Figma mobile layout). */
-    .gift-banner__media-cta {
-      display: grid;
-      place-items: center;
-      position: absolute;
-      inset: 0;
-      pointer-events: none; /* only the button itself is interactive */
-    }
-    .gift-banner__media-cta .gift-btn { pointer-events: auto; }
   }
 {% endstylesheet %}
 
