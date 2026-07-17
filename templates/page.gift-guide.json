@@ -1,5 +1,4 @@
 {
-  "comment": "Gift Guide page: assign this template to a page (Online Store > Pages > Theme template: gift-guide). Then pick products for the grid and the bundle product in the theme editor.",
   "sections": {
     "gift_banner": {
       "type": "gift-banner",
