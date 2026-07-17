@@ -1,0 +1,40 @@
+{
+  "comment": "Gift Guide page: assign this template to a page (Online Store > Pages > Theme template: gift-guide). Then pick products for the grid and the bundle product in the theme editor.",
+  "sections": {
+    "gift_banner": {
+      "type": "gift-banner",
+      "settings": {
+        "logo_text": "TISSO VISON",
+        "top_tagline": "Find the ideal gift for your loved ones.",
+        "top_button_label": "CHOOSE GIFT",
+        "heading": "The Gift Guide",
+        "body_text": "<p>Discover Joy: Your Ultimate Holiday Gift Destination. Explore our curated selection and find the perfect gifts to delight your loved ones this holiday season.</p>",
+        "main_button_label": "SHOP NOW",
+        "bottom_text": "SUSTAINABLE, ETHICALLY MADE CLOTHES IN SIZES XXS TO 6XL"
+      }
+    },
+    "gift_grid": {
+      "type": "gift-grid",
+      "blocks": {
+        "product_1": { "type": "product", "settings": {} },
+        "product_2": { "type": "product", "settings": {} },
+        "product_3": { "type": "product", "settings": {} },
+        "product_4": { "type": "product", "settings": {} },
+        "product_5": { "type": "product", "settings": {} },
+        "product_6": { "type": "product", "settings": {} }
+      },
+      "block_order": [
+        "product_1",
+        "product_2",
+        "product_3",
+        "product_4",
+        "product_5",
+        "product_6"
+      ],
+      "settings": {
+        "heading": "Tisso vison in the wild"
+      }
+    }
+  },
+  "order": ["gift_banner", "gift_grid"]
+}
