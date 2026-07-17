@@ -46,47 +46,69 @@
     {%- endif -%}
   </div>
 
+  {%- comment %}
+    Reusable "Shop now" CTA. It is rendered in two places so each layout can
+    place it faithfully: inside the copy block on desktop (bottom-left over the
+    art) and overlaid on the illustration on mobile. Only one is ever visible.
+  {% endcomment -%}
+  {%- capture main_cta -%}
+    {%- if s.main_button_label != blank -%}
+      <a
+        class="gift-btn gift-btn--solid"
+        {% if s.main_button_link != blank %}href="{{ s.main_button_link }}"{% else %}href="#" role="button"{% endif %}
+      >
+        <span class="gift-btn__label">{{ s.main_button_label | escape }}</span>
+        <span class="gift-btn__arrow" aria-hidden="true">&#8594;</span>
+      </a>
+    {%- endif -%}
+  {%- endcapture -%}
+
   {%- comment %} Hero body: background illustration + copy block {% endcomment -%}
   <div class="gift-banner__hero">
-    {%- if s.background_image != blank -%}
-      {%- comment %} Optional raster override uploaded from the customizer. {% endcomment -%}
-      <img
-        class="gift-banner__bg"
-        src="{{ s.background_image | image_url: width: 2400 }}"
-        srcset="
-          {{ s.background_image | image_url: width: 800 }} 800w,
-          {{ s.background_image | image_url: width: 1200 }} 1200w,
-          {{ s.background_image | image_url: width: 1800 }} 1800w,
-          {{ s.background_image | image_url: width: 2400 }} 2400w
-        "
-        sizes="100vw"
-        alt=""
-        loading="eager"
-        width="{{ s.background_image.width }}"
-        height="{{ s.background_image.height }}"
-      >
-    {%- else -%}
-      {%- comment %}
-        Default brand illustration. Distinct SVG art for mobile and desktop,
-        served from theme assets (SVGs can't go through the image_url filter).
-      {% endcomment -%}
-      <picture class="gift-banner__bg-picture">
-        <source
-          media="(max-width: 749px)"
-          srcset="{{ 'gift-banner-mobile.svg' | asset_url }}"
-          width="1052"
-          height="400"
-        >
+    <div class="gift-banner__media">
+      {%- if s.background_image != blank -%}
+        {%- comment %} Optional raster override uploaded from the customizer. {% endcomment -%}
         <img
           class="gift-banner__bg"
-          src="{{ 'gift-banner-desktop.svg' | asset_url }}"
+          src="{{ s.background_image | image_url: width: 2400 }}"
+          srcset="
+            {{ s.background_image | image_url: width: 800 }} 800w,
+            {{ s.background_image | image_url: width: 1200 }} 1200w,
+            {{ s.background_image | image_url: width: 1800 }} 1800w,
+            {{ s.background_image | image_url: width: 2400 }} 2400w
+          "
+          sizes="100vw"
           alt=""
           loading="eager"
-          width="1440"
-          height="780"
+          width="{{ s.background_image.width }}"
+          height="{{ s.background_image.height }}"
         >
-      </picture>
-    {%- endif -%}
+      {%- else -%}
+        {%- comment %}
+          Default brand illustration. Distinct SVG art for mobile and desktop,
+          served from theme assets (SVGs can't go through the image_url filter).
+        {% endcomment -%}
+        <picture class="gift-banner__bg-picture">
+          <source
+            media="(max-width: 749px)"
+            srcset="{{ 'gift-banner-mobile.svg' | asset_url }}"
+            width="1052"
+            height="400"
+          >
+          <img
+            class="gift-banner__bg"
+            src="{{ 'gift-banner-desktop.svg' | asset_url }}"
+            alt=""
+            loading="eager"
+            width="1440"
+            height="780"
+          >
+        </picture>
+      {%- endif -%}
+
+      {%- comment %} CTA overlaid on the illustration (mobile layout only). {% endcomment -%}
+      <div class="gift-banner__media-cta">{{ main_cta }}</div>
+    </div>
 
     <div class="gift-banner__content">
       {%- if s.heading != blank -%}
@@ -97,15 +119,8 @@
         <div class="gift-banner__body">{{ s.body_text }}</div>
       {%- endif -%}
 
-      {%- if s.main_button_label != blank -%}
-        <a
-          class="gift-btn gift-btn--solid"
-          {% if s.main_button_link != blank %}href="{{ s.main_button_link }}"{% else %}href="#" role="button"{% endif %}
-        >
-          <span class="gift-btn__label">{{ s.main_button_label | escape }}</span>
-          <span class="gift-btn__arrow" aria-hidden="true">&#8594;</span>
-        </a>
-      {%- endif -%}
+      {%- comment %} CTA inside the copy (desktop layout only). {% endcomment -%}
+      <div class="gift-banner__content-cta">{{ main_cta }}</div>
     </div>
   </div>
 
@@ -125,7 +140,11 @@
     background: #ffffff;
     color: var(--gb-ink);
     font-family: var(--gb-body-font, inherit);
+    overflow-x: hidden; /* guard against full-bleed rounding overflow */
   }
+  .gift-banner *,
+  .gift-banner *::before,
+  .gift-banner *::after { box-sizing: border-box; }
 
   /* ---- Top utility bar ---------------------------------------------- */
   .gift-banner__topbar {
@@ -154,33 +173,42 @@
   }
 
   /* ---- Hero --------------------------------------------------------- */
+  /* The hero matches the illustration's native ratio so the art shows in
+     full (like the Figma) instead of being zoom-cropped. */
   .gift-banner__hero {
     position: relative;
     display: flex;
     align-items: flex-end;
-    min-height: clamp(460px, 72vh, 760px);
+    aspect-ratio: 1440 / 780;
     overflow: hidden;
   }
 
-  /* `display: contents` lets the inner <img> position against the hero. */
+  /* Illustration layer: fills the hero on desktop. */
+  .gift-banner__media {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+  }
+  /* `display: contents` lets the inner <img> size against the media layer. */
   .gift-banner__bg-picture { display: contents; }
 
   .gift-banner__bg {
-    position: absolute;
-    inset: 0;
     width: 100%;
     height: 100%;
     object-fit: cover;
     object-position: center;
-    z-index: 0;
+    display: block;
     user-select: none;
     pointer-events: none;
   }
 
+  /* The over-the-image CTA only appears in the mobile layout. */
+  .gift-banner__media-cta { display: none; }
+
   .gift-banner__content {
     position: relative;
     z-index: 1;
-    max-width: 44ch;
+    max-width: min(90%, 620px);
     padding: 0 2.2rem 3.4rem;
   }
 
@@ -190,7 +218,7 @@
     font-weight: 800;
     line-height: 0.98;
     letter-spacing: -0.01em;
-    font-size: clamp(2.6rem, 6vw, 5rem);
+    font-size: clamp(2.4rem, 5vw, 4.25rem);
   }
 
   .gift-banner__body {
@@ -282,28 +310,44 @@
     .gift-banner__tagline,
     .gift-banner__topbar .gift-btn { display: none; }
 
-    /* Stack the copy on white above the illustration. */
+    /* Copy on white above; illustration (with CTA overlaid) below. */
     .gift-banner__hero {
       flex-direction: column;
       align-items: stretch;
-      min-height: 0;
+      aspect-ratio: auto;
     }
     .gift-banner__content {
+      order: 1;
       position: static;
-      order: -1;
       max-width: none;
       padding: 2rem 1.4rem 1.6rem;
       text-align: center;
     }
     .gift-banner__heading { font-size: clamp(2.2rem, 11vw, 3rem); }
-    .gift-banner__content .gift-btn { display: inline-flex; }
+    /* Hide the in-copy CTA; use the one overlaid on the image instead. */
+    .gift-banner__content-cta { display: none; }
 
-    /* Illustration flows in-line below the copy at its natural ratio. */
+    /* Illustration flows in-line at its natural ratio. */
+    .gift-banner__media {
+      order: 2;
+      position: relative;
+      inset: auto;
+    }
     .gift-banner__bg {
       position: relative;
       height: auto;
       object-fit: contain;
     }
+
+    /* Center the CTA over the illustration (Figma mobile layout). */
+    .gift-banner__media-cta {
+      display: grid;
+      place-items: center;
+      position: absolute;
+      inset: 0;
+      pointer-events: none; /* only the button itself is interactive */
+    }
+    .gift-banner__media-cta .gift-btn { pointer-events: auto; }
   }
 {% endstylesheet %}
 
