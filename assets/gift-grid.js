@@ -1,23 +1,13 @@
-/* ==========================================================================
- * gift-grid.js
- * --------------------------------------------------------------------------
- * Quick-view popup + AJAX add-to-cart for the "Gift Grid" section.
- * Pure vanilla JavaScript, no dependencies.
- *
- * Responsibilities
- *   1. Open a popup when a tile's "+" hotspot is clicked.
- *   2. Build the variant controls from the product payload
- *      (Color -> swatch buttons, Size -> dropdown, anything else -> dropdown).
- *   3. Resolve the selected variant, keep price/availability in sync.
- *   4. Add the selected variant to the cart via /cart/add.js.
- *   5. Bundle rule: if the selected variant combines "Black" and "Medium",
- *      also add the section's bundle product (e.g. Soft Winter Jacket).
- * ========================================================================== */
-
 (function () {
   'use strict';
 
-  var BUNDLE_TRIGGER = ['black', 'medium'];
+  // The bundle add-on fires when the selected variant matches EVERY group
+  // below (one value per group). Each group lists accepted synonyms, so a
+  // size stored as "Medium" or its abbreviation "M" both qualify.
+  var BUNDLE_TRIGGER_GROUPS = [
+    ['black'],
+    ['medium', 'm'],
+  ];
 
   var COLOR_MAP = {
     black: '#0a0a0a',
@@ -335,14 +325,17 @@
       });
   };
 
-  // True when the selected variant combines every BUNDLE_TRIGGER value.
+  // True when the selected variant satisfies every trigger group (e.g. a
+  // "Black" value AND a "Medium"/"M" value).
   GiftGrid.prototype.shouldBundle = function (variant) {
     if (!this.section.dataset.bundleVariant) return false;
     var values = variant.options.map(function (v) {
-      return String(v).toLowerCase();
+      return String(v).toLowerCase().trim();
     });
-    return BUNDLE_TRIGGER.every(function (trigger) {
-      return values.indexOf(trigger) !== -1;
+    return BUNDLE_TRIGGER_GROUPS.every(function (group) {
+      return group.some(function (name) {
+        return values.indexOf(name) !== -1;
+      });
     });
   };
 
